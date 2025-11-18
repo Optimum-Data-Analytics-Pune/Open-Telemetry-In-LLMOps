@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Azure OpenAI Chat</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>💬 Azure OpenAI Chat</h2>
+    <div id="chat-box"></div>
+    <form id="chat-form">
+      <input type="text" id="prompt" placeholder="Ask me anything..." autocomplete="off" required />
+      <button type="submit">Send</button>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('chat-form');
+    const promptInput = document.getElementById('prompt');
+    const chatBox = document.getElementById('chat-box');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const prompt = promptInput.value;
+      chatBox.innerHTML += `<div class="user">🧑‍💻 ${prompt}</div>`;
+      promptInput.value = '';
+
+      const eventSource = new EventSource(`/chat?prompt=${encodeURIComponent(prompt)}`);
+
+      let assistantMessage = '';
+      const assistantDiv = document.createElement('div');
+      assistantDiv.classList.add('assistant');
+      chatBox.appendChild(assistantDiv);
+
+      eventSource.onmessage = (event) => {
+        assistantMessage += event.data;
+        assistantDiv.innerHTML = `🤖 ${assistantMessage}`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+      };
+
+      eventSource.onerror = () => {
+        eventSource.close();
+      };
+    });
+  </script>
+</body>
+</html>
